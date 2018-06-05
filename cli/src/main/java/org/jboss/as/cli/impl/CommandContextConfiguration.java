@@ -45,10 +45,11 @@ public class CommandContextConfiguration {
     private final boolean outputJSON;
     private final boolean colorOutput;
     private final boolean outputPaging;
+    private final boolean characterHighlight;
 
     private CommandContextConfiguration(String controller, String username, char[] password, String clientBindAddress,
-            boolean disableLocalAuth, boolean initConsole, int connectionTimeout, InputStream consoleInput, OutputStream consoleOutput,
-            boolean echoCommand, Integer commandTimeout, boolean outputJSON, boolean colorOutput, boolean outputPaging) {
+                                        boolean disableLocalAuth, boolean initConsole, int connectionTimeout, InputStream consoleInput, OutputStream consoleOutput,
+                                        boolean echoCommand, Integer commandTimeout, boolean outputJSON, boolean colorOutput, boolean outputPaging, boolean characterHighlight) {
         this.controller = controller;
         this.username = username;
         this.password = password;
@@ -56,6 +57,7 @@ public class CommandContextConfiguration {
         this.consoleInput = consoleInput;
         this.consoleOutput = consoleOutput;
         this.initConsole = initConsole;
+        this.characterHighlight = characterHighlight;
         this.disableLocalAuth = disableLocalAuth || username != null;
         this.connectionTimeout = connectionTimeout;
         this.echoCommand = echoCommand;
@@ -133,6 +135,10 @@ public class CommandContextConfiguration {
         return colorOutput;
     }
 
+    public boolean isCharacterHighlight() {
+        return characterHighlight;
+    }
+
     public static class Builder {
         private String controller;
         private String username;
@@ -152,6 +158,7 @@ public class CommandContextConfiguration {
         private boolean outputJSON;
         private boolean colorOutput;
         private boolean outputPaging = true;
+        private boolean characterHighlight = true;
 
         public Builder() {
         }
@@ -162,7 +169,7 @@ public class CommandContextConfiguration {
             }
             final CommandContextConfiguration config = new CommandContextConfiguration(controller, username, password,
                     clientBindAddress, disableLocalAuth, initConsole, connectionTimeout, consoleInput, consoleOutput,
-                    echoCommand, commandTimeout, outputJSON, colorOutput, outputPaging);
+                    echoCommand, commandTimeout, outputJSON, colorOutput, outputPaging, characterHighlight);
             config.silent = silent;
             config.errorOnInteract = errorOnInteract;
             config.validateOperationRequests = validateOperationRequests;
@@ -256,6 +263,11 @@ public class CommandContextConfiguration {
 
         public Builder setOutputPaging(boolean outputPaging) {
             this.outputPaging = outputPaging;
+            return this;
+        }
+
+        public Builder setCharacterHighlight(boolean characterHighlight) {
+            this.characterHighlight = characterHighlight;
             return this;
         }
     }

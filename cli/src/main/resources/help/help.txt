@@ -110,6 +110,8 @@ Usage:
 
  --no-output-paging - disable output paging (the possibility to browse and search in output of commands) and print the output of commands at once.
 
+ --no-character-highlight - disable highlighting of open/close brackets.
+
 For a list of available commands, once the CLI is started, execute:
 
   help --commands
