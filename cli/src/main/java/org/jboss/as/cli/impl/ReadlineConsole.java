@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumMap;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -202,8 +202,8 @@ public class ReadlineConsole {
                 }
             }
 
-            Set<AbstractMap.SimpleEntry<Character, Integer>> closedBrackets = new HashSet<>();
-            Set<AbstractMap.SimpleEntry<Character, Integer>> openBrackets = new HashSet<>();
+            Set<AbstractMap.SimpleEntry<Character, Integer>> closedBrackets = new LinkedHashSet<>();
+            Set<AbstractMap.SimpleEntry<Character, Integer>> openBrackets = new LinkedHashSet<>();
 
 
             for (int i = 0; i < brackets.size(); i++) {
