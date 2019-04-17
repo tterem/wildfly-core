@@ -114,7 +114,10 @@ public class BracketsHighlightingTestCase {
             .build();
 
       // check if expected sequence is present in output
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
+      }
+
    }
 
    /**
@@ -175,7 +178,9 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
+      }
    }
 
    /**
@@ -278,7 +283,9 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
+      }
    }
 
    /**
@@ -409,7 +416,9 @@ public class BracketsHighlightingTestCase {
             .right(33)
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
+      }
    }
 
    /**
@@ -496,7 +505,9 @@ public class BracketsHighlightingTestCase {
 
       AnsiSequence expectedSequence = builder.build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
+      }
    }
 
    /**
@@ -525,7 +536,9 @@ public class BracketsHighlightingTestCase {
             .left(1).left(1).right(2)
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
+      }
    }
 
    /**
@@ -567,6 +580,8 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
+      }
    }
 }
