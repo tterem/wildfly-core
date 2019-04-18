@@ -25,8 +25,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wildfly.core.testrunner.WildflyTestRunner;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * These tests check highlighting of matching open/close brackets in cli
  *
@@ -85,12 +83,6 @@ public class BracketsHighlightingTestCase {
             .left(1)
             .build();
 
-      // execute cli
-      cli.pushLineAndWaitForResults(command + cursorMovement);
-
-      // get output
-      String out = cli.getOutput();
-
       // prepare expected ansi sequence
       AnsiSequence expectedSequence = new AnsiSequence.Builder()
             .left(1)
@@ -115,13 +107,15 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
+      // execute cli
+      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
+
+      // get output
+      String out = cli.getOutput();
+
       // check if expected sequence is present in output
-      if (!out.contains(expectedSequence.toString())) { // solving intermittent issue, sometimes out doesn't contain whole sequence
-         TimeUnit.SECONDS.sleep(60);
-         out = cli.getOutput();
-         if (!out.contains(expectedSequence.toString())) {
-            Assert.assertEquals(expectedSequence, out);
-         }
+      if (!out.contains(expectedSequence.toString())) {
+         Assert.assertEquals(expectedSequence, out);
       }
    }
 
@@ -138,9 +132,6 @@ public class BracketsHighlightingTestCase {
       CursorMovement cursorMovement = new CursorMovement.Builder()
             .left(2)
             .build();
-
-      cli.pushLineAndWaitForResults(command + cursorMovement);
-      String out = cli.getOutput();
 
       AnsiSequence expectedSequence = new AnsiSequence.Builder()
             .left(1)
@@ -183,12 +174,11 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
+      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
+      String out = cli.getOutput();
+
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(60);
-         out = cli.getOutput();
-         if (!out.contains(expectedSequence.toString())) {
-            Assert.assertEquals(expectedSequence, out);
-         }
+         Assert.assertEquals(expectedSequence, out);
       }
    }
 
@@ -204,9 +194,6 @@ public class BracketsHighlightingTestCase {
             .left(6)
             .right(6)
             .build();
-
-      cli.pushLineAndWaitForResults(command + cursorMovement);
-      String out = cli.getOutput();
 
       /*
        * There is visualisation of how text in console looks like next to each line
@@ -292,12 +279,11 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
+      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
+      String out = cli.getOutput();
+
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(60);
-         out = cli.getOutput();
-         if (!out.contains(expectedSequence.toString())) {
-            Assert.assertEquals(expectedSequence, out);
-         }
+         Assert.assertEquals(expectedSequence, out);
       }
    }
 
@@ -312,9 +298,6 @@ public class BracketsHighlightingTestCase {
       CursorMovement cursorMovement = new CursorMovement.Builder()
             .left(33)
             .build();
-
-      cli.pushLineAndWaitForResults(command + cursorMovement);
-      String out = cli.getOutput();
 
       AnsiSequence expectedSequence = new AnsiSequence.Builder()
             .left(1).saveCursor().left(62).right(38).undoHighlight('(')
@@ -429,12 +412,11 @@ public class BracketsHighlightingTestCase {
             .right(33)
             .build();
 
+      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
+      String out = cli.getOutput();
+
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(60);
-         out = cli.getOutput();
-         if (!out.contains(expectedSequence.toString())) {
-            Assert.assertEquals(expectedSequence, out);
-         }
+         Assert.assertEquals(expectedSequence, out);
       }
    }
 
@@ -449,9 +431,6 @@ public class BracketsHighlightingTestCase {
       CursorMovement cursorMovement = new CursorMovement.Builder()
             .left(188)
             .build();
-
-      cli.pushLineAndWaitForResults(command + cursorMovement);
-      String out = cli.getOutput();
 
       AnsiSequence.Builder builder = new AnsiSequence.Builder()
             .left(1).saveCursor().up(1).left(57).right(30).undoHighlight('[')
@@ -522,12 +501,11 @@ public class BracketsHighlightingTestCase {
 
       AnsiSequence expectedSequence = builder.build();
 
+      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
+      String out = cli.getOutput();
+
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(60);
-         out = cli.getOutput();
-         if (!out.contains(expectedSequence.toString())) {
-            Assert.assertEquals(expectedSequence, out);
-         }
+         Assert.assertEquals(expectedSequence, out);
       }
    }
 
@@ -550,19 +528,15 @@ public class BracketsHighlightingTestCase {
             .left(2)
             .build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement);
-      String out = cli.getOutput();
-
       AnsiSequence expectedSequence = new AnsiSequence.Builder()
             .left(1).left(1).right(2)
             .build();
 
+      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
+      String out = cli.getOutput();
+
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(60);
-         out = cli.getOutput();
-         if (!out.contains(expectedSequence.toString())) {
-            Assert.assertEquals(expectedSequence, out);
-         }
+         Assert.assertEquals(expectedSequence, out);
       }
    }
 
@@ -585,9 +559,6 @@ public class BracketsHighlightingTestCase {
             .left(3)
             .build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement);
-      String out = cli.getOutput();
-
       AnsiSequence expectedSequence = new AnsiSequence.Builder()
             .left(1).saveCursor().left(32).right(30).undoHighlight('(')
             .leftRestoreSave().left(32).right(32).undoHighlight(')')
@@ -605,12 +576,11 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
+      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
+      String out = cli.getOutput();
+
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(60);
-         out = cli.getOutput();
-         if (!out.contains(expectedSequence.toString())) {
-            Assert.assertEquals(expectedSequence, out);
-         }
+         Assert.assertEquals(expectedSequence, out);
       }
    }
 }
