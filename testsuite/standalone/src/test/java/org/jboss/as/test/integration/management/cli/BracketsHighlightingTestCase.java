@@ -117,9 +117,11 @@ public class BracketsHighlightingTestCase {
 
       // check if expected sequence is present in output
       if (!out.contains(expectedSequence.toString())) { // solving intermittent issue, sometimes out doesn't contain whole sequence
-         TimeUnit.SECONDS.sleep(1);
+         TimeUnit.SECONDS.sleep(60);
          out = cli.getOutput();
-         Assert.assertTrue(out.contains(expectedSequence.toString()));
+         if (!out.contains(expectedSequence.toString())) {
+            Assert.assertEquals(expectedSequence, out);
+         }
       }
    }
 
@@ -182,9 +184,11 @@ public class BracketsHighlightingTestCase {
             .build();
 
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(1);
+         TimeUnit.SECONDS.sleep(60);
          out = cli.getOutput();
-         Assert.assertTrue(out.contains(expectedSequence.toString()));
+         if (!out.contains(expectedSequence.toString())) {
+            Assert.assertEquals(expectedSequence, out);
+         }
       }
    }
 
@@ -289,9 +293,11 @@ public class BracketsHighlightingTestCase {
             .build();
 
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(1);
+         TimeUnit.SECONDS.sleep(60);
          out = cli.getOutput();
-         Assert.assertTrue(out.contains(expectedSequence.toString()));
+         if (!out.contains(expectedSequence.toString())) {
+            Assert.assertEquals(expectedSequence, out);
+         }
       }
    }
 
@@ -424,9 +430,11 @@ public class BracketsHighlightingTestCase {
             .build();
 
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(1);
+         TimeUnit.SECONDS.sleep(60);
          out = cli.getOutput();
-         Assert.assertTrue(out.contains(expectedSequence.toString()));
+         if (!out.contains(expectedSequence.toString())) {
+            Assert.assertEquals(expectedSequence, out);
+         }
       }
    }
 
@@ -515,9 +523,11 @@ public class BracketsHighlightingTestCase {
       AnsiSequence expectedSequence = builder.build();
 
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(1);
+         TimeUnit.SECONDS.sleep(60);
          out = cli.getOutput();
-         Assert.assertTrue(out.contains(expectedSequence.toString()));
+         if (!out.contains(expectedSequence.toString())) {
+            Assert.assertEquals(expectedSequence, out);
+         }
       }
    }
 
@@ -548,9 +558,11 @@ public class BracketsHighlightingTestCase {
             .build();
 
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(1);
+         TimeUnit.SECONDS.sleep(60);
          out = cli.getOutput();
-         Assert.assertTrue(out.contains(expectedSequence.toString()));
+         if (!out.contains(expectedSequence.toString())) {
+            Assert.assertEquals(expectedSequence, out);
+         }
       }
    }
 
@@ -594,9 +606,11 @@ public class BracketsHighlightingTestCase {
             .build();
 
       if (!out.contains(expectedSequence.toString())) {
-         TimeUnit.SECONDS.sleep(1);
+         TimeUnit.SECONDS.sleep(60);
          out = cli.getOutput();
-         Assert.assertTrue(out.contains(expectedSequence.toString()));
+         if (!out.contains(expectedSequence.toString())) {
+            Assert.assertEquals(expectedSequence, out);
+         }
       }
    }
 }
