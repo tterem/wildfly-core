@@ -25,6 +25,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.wildfly.core.testrunner.WildflyTestRunner;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * These tests check highlighting of matching open/close brackets in cli
  *
@@ -114,7 +116,11 @@ public class BracketsHighlightingTestCase {
             .build();
 
       // check if expected sequence is present in output
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) { // solving intermittent issue, sometimes out doesn't contain whole sequence
+         TimeUnit.SECONDS.sleep(1);
+         out = cli.getOutput();
+         Assert.assertTrue(out.contains(expectedSequence.toString()));
+      }
    }
 
    /**
@@ -175,7 +181,11 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         TimeUnit.SECONDS.sleep(1);
+         out = cli.getOutput();
+         Assert.assertTrue(out.contains(expectedSequence.toString()));
+      }
    }
 
    /**
@@ -278,7 +288,11 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         TimeUnit.SECONDS.sleep(1);
+         out = cli.getOutput();
+         Assert.assertTrue(out.contains(expectedSequence.toString()));
+      }
    }
 
    /**
@@ -409,7 +423,11 @@ public class BracketsHighlightingTestCase {
             .right(33)
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         TimeUnit.SECONDS.sleep(1);
+         out = cli.getOutput();
+         Assert.assertTrue(out.contains(expectedSequence.toString()));
+      }
    }
 
    /**
@@ -496,7 +514,11 @@ public class BracketsHighlightingTestCase {
 
       AnsiSequence expectedSequence = builder.build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         TimeUnit.SECONDS.sleep(1);
+         out = cli.getOutput();
+         Assert.assertTrue(out.contains(expectedSequence.toString()));
+      }
    }
 
    /**
@@ -525,7 +547,11 @@ public class BracketsHighlightingTestCase {
             .left(1).left(1).right(2)
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         TimeUnit.SECONDS.sleep(1);
+         out = cli.getOutput();
+         Assert.assertTrue(out.contains(expectedSequence.toString()));
+      }
    }
 
    /**
@@ -567,6 +593,10 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      Assert.assertTrue(out.contains(expectedSequence.toString()));
+      if (!out.contains(expectedSequence.toString())) {
+         TimeUnit.SECONDS.sleep(1);
+         out = cli.getOutput();
+         Assert.assertTrue(out.contains(expectedSequence.toString()));
+      }
    }
 }
