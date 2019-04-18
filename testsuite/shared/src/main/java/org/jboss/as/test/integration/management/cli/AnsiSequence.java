@@ -161,11 +161,19 @@ public class AnsiSequence {
        * Highlight current (cursor is on it) character c with white colour
        */
       public Builder whiteHighlight(char c) {
-         sequence.append(ESC)
-               .append("[1m")
-               .append(ESC)
-               .append("[;30;47m")
-               .append(c);
+         if (Util.isSolaris()) {
+            sequence.append(ESC)
+                  .append("[0;1m")
+                  .append(ESC)
+                  .append("[;30;47m")
+                  .append(c);
+         } else {
+            sequence.append(ESC)
+                  .append("[1m")
+                  .append(ESC)
+                  .append("[;30;47m")
+                  .append(c);
+         }
          return this;
       }
 
