@@ -16,9 +16,11 @@
 
 package org.jboss.as.test.integration.management.cli;
 
+import org.jboss.as.cli.Util;
 import org.jboss.as.test.shared.TestSuiteEnvironment;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -75,6 +77,9 @@ public class BracketsHighlightingTestCase {
     */
    @Test
    public void testBasic() throws Exception {
+      // Tests don't work on windows, ansi sequence is not present on output, even though it works manually
+      Assume.assumeTrue(!Util.isWindows());
+
       // prepare cli command
       String command = "()";
 
@@ -113,7 +118,7 @@ public class BracketsHighlightingTestCase {
       // get output
       String out = cli.getOutput();
 
-      // check if expected sequence is present in output
+      // check if expected sequence is present on output, if no, show the diff
       if (!out.contains(expectedSequence.toString())) {
          Assert.assertEquals(expectedSequence, out);
       }
@@ -128,6 +133,8 @@ public class BracketsHighlightingTestCase {
     */
    @Test
    public void testBasicTwoLeft() throws Exception {
+      Assume.assumeTrue(!Util.isWindows());
+
       String command = "()";
       CursorMovement cursorMovement = new CursorMovement.Builder()
             .left(2)
@@ -189,6 +196,8 @@ public class BracketsHighlightingTestCase {
     */
    @Test
    public void testLeftAndRightComplexExpression() throws Exception {
+      Assume.assumeTrue(!Util.isWindows());
+
       String command = "([){]}";
       CursorMovement cursorMovement = new CursorMovement.Builder()
             .left(6)
@@ -294,6 +303,8 @@ public class BracketsHighlightingTestCase {
     */
    @Test
    public void testWellFormedExpression() throws Exception {
+      Assume.assumeTrue(!Util.isWindows());
+
       String command = "/abc:add({a=[], b=[], c={[],()}})";
       CursorMovement cursorMovement = new CursorMovement.Builder()
             .left(33)
@@ -427,6 +438,8 @@ public class BracketsHighlightingTestCase {
     */
    @Test
    public void testMultilineExpression() throws Exception {
+      Assume.assumeTrue(!Util.isWindows());
+
       String command = "[{()123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_123456789_()}]";
       CursorMovement cursorMovement = new CursorMovement.Builder()
             .left(188)
@@ -517,6 +530,8 @@ public class BracketsHighlightingTestCase {
     */
    @Test
    public void testDisableHighlighting() throws Exception {
+      Assume.assumeTrue(!Util.isWindows());
+
       CliProcessWrapper cli = new CliProcessWrapper()
             .addCliArgument("--connect")
             .addCliArgument("--controller=" + hostAndPort)
@@ -548,6 +563,8 @@ public class BracketsHighlightingTestCase {
     */
    @Test
    public void testDisableColorOutput() throws Exception {
+      Assume.assumeTrue(!Util.isWindows());
+
       CliProcessWrapper cli = new CliProcessWrapper()
             .addCliArgument("--connect")
             .addCliArgument("--controller=" + hostAndPort)
