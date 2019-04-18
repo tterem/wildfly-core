@@ -16,6 +16,8 @@
 
 package org.jboss.as.test.integration.management.cli;
 
+import org.jboss.as.cli.Util;
+
 /**
  * This is a tool for creating ANSI codes sequences for BracketsHighlightingTestCase.
  *
@@ -91,8 +93,13 @@ public class AnsiSequence {
        * Save cursor current position
        */
       public Builder saveCursor() {
-         sequence.append(ESC)
-               .append(7);
+         if (Util.isSolaris()) {
+            sequence.append(ESC)
+                  .append("[s");
+         } else {
+            sequence.append(ESC)
+                  .append(7);
+         }
          return this;
       }
 
@@ -100,8 +107,13 @@ public class AnsiSequence {
        * Restore cursor to previously saved position
        */
       public Builder restoreCursor() {
-         sequence.append(ESC)
-               .append(8);
+         if (Util.isSolaris()) {
+            sequence.append(ESC)
+                  .append("[u");
+         } else {
+            sequence.append(ESC)
+                  .append(8);
+         }
          return this;
       }
 
@@ -109,11 +121,19 @@ public class AnsiSequence {
        * Highlight current (cursor is on it) character c with green colour
        */
       public Builder greenHighlight(char c) {
-         sequence.append(ESC)
-               .append("[1m")
-               .append(ESC)
-               .append("[;39;42m")
-               .append(c);
+         if (Util.isSolaris()) {
+            sequence.append(ESC)
+                  .append("[0;1m")
+                  .append(ESC)
+                  .append("[;39;42m")
+                  .append(c);
+         } else {
+            sequence.append(ESC)
+                  .append("[1m")
+                  .append(ESC)
+                  .append("[;39;42m")
+                  .append(c);
+         }
          return this;
       }
 
@@ -121,11 +141,19 @@ public class AnsiSequence {
        * Highlight current (cursor is on it) character c with red colour
        */
       public Builder redHighlight(char c) {
-         sequence.append(ESC)
-               .append("[1m")
-               .append(ESC)
-               .append("[;39;41m")
-               .append(c);
+         if (Util.isSolaris()) {
+            sequence.append(ESC)
+                  .append("[0;1m")
+                  .append(ESC)
+                  .append("[;39;41m")
+                  .append(c);
+         } else {
+            sequence.append(ESC)
+                  .append("[1m")
+                  .append(ESC)
+                  .append("[;39;41m")
+                  .append(c);
+         }
          return this;
       }
 
