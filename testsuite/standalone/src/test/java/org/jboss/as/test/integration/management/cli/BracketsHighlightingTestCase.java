@@ -107,16 +107,8 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      // execute cli
-      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
-
-      // get output
-      String out = cli.getOutput();
-
-      // check if expected sequence is present in output
-      if (!out.contains(expectedSequence.toString())) {
-         Assert.assertEquals(expectedSequence, out);
-      }
+      // execute cli using ushLineAndWaitForResults method which will return true if it finds expected sequence on output
+      Assert.assertTrue(cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString()));
    }
 
    /**
@@ -174,12 +166,7 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
-      String out = cli.getOutput();
-
-      if (!out.contains(expectedSequence.toString())) {
-         Assert.assertEquals(expectedSequence, out);
-      }
+      Assert.assertTrue(cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString()));
    }
 
    /**
@@ -279,12 +266,7 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
-      String out = cli.getOutput();
-
-      if (!out.contains(expectedSequence.toString())) {
-         Assert.assertEquals(expectedSequence, out);
-      }
+      Assert.assertTrue(cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString()));
    }
 
    /**
@@ -412,12 +394,7 @@ public class BracketsHighlightingTestCase {
             .right(33)
             .build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
-      String out = cli.getOutput();
-
-      if (!out.contains(expectedSequence.toString())) {
-         Assert.assertEquals(expectedSequence, out);
-      }
+      Assert.assertTrue(cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString()));
    }
 
    /**
@@ -501,12 +478,7 @@ public class BracketsHighlightingTestCase {
 
       AnsiSequence expectedSequence = builder.build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
-      String out = cli.getOutput();
-
-      if (!out.contains(expectedSequence.toString())) {
-         Assert.assertEquals(expectedSequence, out);
-      }
+      Assert.assertTrue(cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString()));
    }
 
    /**
@@ -532,12 +504,7 @@ public class BracketsHighlightingTestCase {
             .left(1).left(1).right(2)
             .build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
-      String out = cli.getOutput();
-
-      if (!out.contains(expectedSequence.toString())) {
-         Assert.assertEquals(expectedSequence, out);
-      }
+      Assert.assertTrue(cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString()));
    }
 
    /**
@@ -576,11 +543,6 @@ public class BracketsHighlightingTestCase {
             .leftAndRestore()
             .build();
 
-      cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
-      String out = cli.getOutput();
-
-      if (!out.contains(expectedSequence.toString())) {
-         Assert.assertEquals(expectedSequence, out);
-      }
+      Assert.assertTrue(cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString()));
    }
 }
