@@ -43,6 +43,15 @@ public class BracketsHighlightingTestCase {
    private static CliProcessWrapper cli;
    private static String hostAndPort = TestSuiteEnvironment.getServerAddress() + ":" + TestSuiteEnvironment.getServerPort();
 
+   /*
+    * Usually, when moving a cursor, relative numbers are not used, it rather
+    * move to the start of the line and then move back to the desired position
+    * For example: 2 to the left == 50 to the left, and then 48 to the right
+    * Host address is part of the line and its length can vary, which is affecting these hardcoded numbers
+    * This attribute adjust this difference
+    */
+   private static int diff = hostAndPort.length() - "127.0.0.1:9990".length();
+
    /**
     * Initialize CommandContext before all tests
     */
@@ -84,8 +93,8 @@ public class BracketsHighlightingTestCase {
             .build();
 
       // prepare expected ansi sequence
-      AnsiSequence expectedSequence = new AnsiSequence.Builder()
-            .left(1)
+      AnsiSequence expectedSequence = new AnsiSequence.Builder(diff)
+            .leftAbsolute(1)
             .saveCursor()
             .left(31)
             .right(30)
@@ -99,7 +108,7 @@ public class BracketsHighlightingTestCase {
             .right(30)
             .greenHighlight('(')
             .leftAndRestore()
-            .right(1)
+            .rightAbsolute(1)
             .saveCursor()
             .left(32)
             .right(30)
@@ -133,8 +142,8 @@ public class BracketsHighlightingTestCase {
             .left(2)
             .build();
 
-      AnsiSequence expectedSequence = new AnsiSequence.Builder()
-            .left(1)
+      AnsiSequence expectedSequence = new AnsiSequence.Builder(diff)
+            .leftAbsolute(1)
             .saveCursor()
             .left(31)
             .right(30)
@@ -148,7 +157,7 @@ public class BracketsHighlightingTestCase {
             .right(30)
             .greenHighlight('(')
             .leftAndRestore()
-            .left(1)
+            .leftAbsolute(1)
             .saveCursor()
             .left(30)
             .right(30)
@@ -166,7 +175,7 @@ public class BracketsHighlightingTestCase {
             .right(31)
             .greenHighlight(')')
             .leftAndRestore()
-            .right(2)
+            .rightAbsolute(2)
             .saveCursor()
             .left(32)
             .right(31)
@@ -201,81 +210,81 @@ public class BracketsHighlightingTestCase {
        * *x* means that x is highlighted with green color
        * ^x^ means that x is highlighted with red color
        */
-      AnsiSequence expectedSequence = new AnsiSequence.Builder()                              // ([){]}_
-            .left(1).saveCursor().left(35).right(33).undoHighlight('{')                       // ([){]_}
-            .leftRestoreSave().left(35).right(35).undoHighlight('}')                          // ([){]_}
-            .leftRestoreSave().left(35).right(34).redHighlight(']')                           // ([){^]^_}
-            .leftRestoreSave().left(35).right(33).greenHighlight('{')                         // ([)*{*^]^_}
-            .leftAndRestore().left(1).saveCursor().left(34).right(33).undoHighlight('{')      // ([){_^]^}
-            .leftRestoreSave().left(34).right(34).undoHighlight(']')                          // ([){_]}
-            .leftRestoreSave().left(34).right(31).undoHighlight('[')                          // ([){_]}
-            .leftRestoreSave().left(34).right(34).undoHighlight(']')                          // ([){_]}
-            .leftRestoreSave().left(34).right(32).redHighlight(')')                           // ([^)^{_]}
-            .leftRestoreSave().left(34).right(33).redHighlight('{')                           // ([^)^^{^_]}
-            .leftRestoreSave().left(34).right(31).greenHighlight('[')                         // (*[*^)^^{^_]}
-            .leftAndRestore().left(1).saveCursor().left(33).right(31).undoHighlight('[')      // ([^)^_^{^]}
-            .leftRestoreSave().left(33).right(32).undoHighlight(')')                          // ([)^_{^]}
-            .leftRestoreSave().left(33).right(33).undoHighlight('{')                          // ([)_{]}
-            .leftRestoreSave().left(33).right(33).undoHighlight('{')                          // ([)_{]}
-            .leftRestoreSave().left(33).right(35).undoHighlight('}')                          // ([)_{]}
-            .leftRestoreSave().left(33).right(34).redHighlight(']')                           // ([)_{^]^}
-            .leftRestoreSave().left(33).right(35).greenHighlight('}')                         // ([)_{^]^*}*
-            .leftAndRestore().left(1).saveCursor().left(32).right(35).undoHighlight('}')      // ([_){^]^}
-            .leftRestoreSave().left(32).right(34).undoHighlight(']')                          // ([_){]}
-            .leftRestoreSave().left(32).right(30).undoHighlight('(')                          // ([_){]}
-            .leftRestoreSave().left(32).right(32).undoHighlight(')')                          // ([_){]}
-            .leftRestoreSave().left(32).right(31).redHighlight('[')                           // (^[^_){]}
-            .leftRestoreSave().left(32).right(30).greenHighlight('(')                         // *(*^[^_){]}
-            .leftAndRestore().left(1).saveCursor().left(31).right(30).undoHighlight('(')      // (_^[^){]}
-            .leftRestoreSave().left(31).right(31).undoHighlight('[')                          // (_[){]}
-            .leftRestoreSave().left(31).right(31).undoHighlight('[')                          // (_[){]}
-            .leftRestoreSave().left(31).right(34).undoHighlight(']')                          // (_[){]}
-            .leftRestoreSave().left(31).right(32).redHighlight(')')                           // (_[^)^{]}
-            .leftRestoreSave().left(31).right(33).redHighlight('{')                           // (_[^)^^{^]}
-            .leftRestoreSave().left(31).right(34).greenHighlight(']')                         // (_[^)^^{^*]*}
-            .leftAndRestore().left(1).saveCursor().left(30).right(34).undoHighlight(']')      // _([^)^^{^]}
-            .leftRestoreSave().left(30).right(32).undoHighlight(')')                          // _([)^{^]}
-            .leftRestoreSave().left(30).right(33).undoHighlight('{')                          // _([){]}
-            .leftRestoreSave().left(30).right(30).undoHighlight('(')                          // _([){]}
-            .leftRestoreSave().left(30).right(32).undoHighlight(')')                          // _([){]}
-            .leftRestoreSave().left(30).right(31).redHighlight('[')                           // _(^[^){]}
-            .leftRestoreSave().left(30).right(32).greenHighlight(')')                         // _(^[^*)*{]}
-            .leftAndRestore().right(1).saveCursor().left(31).right(32).undoHighlight(')')     // (_^[^){]}
-            .leftRestoreSave().left(31).right(31).undoHighlight('[')                          // (_[){]}
-            .leftRestoreSave().left(31).right(31).undoHighlight('[')                          // (_[){]}
-            .leftRestoreSave().left(31).right(34).undoHighlight(']')                          // (_[){]}
-            .leftRestoreSave().left(31).right(32).redHighlight(')')                           // (_[^)^{]}
-            .leftRestoreSave().left(31).right(33).redHighlight('{')                           // (_[^)^^{^]}
-            .leftRestoreSave().left(31).right(34).greenHighlight(']')                         // (_[^)^^{^*]*}
-            .leftAndRestore().right(1).saveCursor().left(32).right(34).undoHighlight(']')     // ([_^)^^{^]}
-            .leftRestoreSave().left(32).right(32).undoHighlight(')')                          // ([_)^{^]}
-            .leftRestoreSave().left(32).right(33).undoHighlight('{')                          // ([_){]}
-            .leftRestoreSave().left(32).right(30).undoHighlight('(')                          // ([_){]}
-            .leftRestoreSave().left(32).right(32).undoHighlight(')')                          // ([_){]}
-            .leftRestoreSave().left(32).right(31).redHighlight('[')                           // (^[^_){]}
-            .leftRestoreSave().left(32).right(30).greenHighlight('(')                         // *(*^[^_){]}
-            .leftAndRestore().right(1).saveCursor().left(33).right(30).undoHighlight('(')     // (^[^)_{]}
-            .leftRestoreSave().left(33).right(31).undoHighlight('[')                          // ([)_{]}
-            .leftRestoreSave().left(33).right(33).undoHighlight('{')                          // ([)_{]}
-            .leftRestoreSave().left(33).right(35).undoHighlight('}')                          // ([)_{]}
-            .leftRestoreSave().left(33).right(34).redHighlight(']')                           // ([)_{^]^}
-            .leftRestoreSave().left(33).right(35).greenHighlight('}')                         // ([)_{^]^*}*
-            .leftAndRestore().right(1).saveCursor().left(34).right(35).undoHighlight('}')     // ([){_^]^}
-            .leftRestoreSave().left(34).right(34).undoHighlight(']')                          // ([){_]}
-            .leftRestoreSave().left(34).right(31).undoHighlight('[')                          // ([){_]}
-            .leftRestoreSave().left(34).right(34).undoHighlight(']')                          // ([){_]}
-            .leftRestoreSave().left(34).right(32).redHighlight(')')                           // ([^)^{_]}
-            .leftRestoreSave().left(34).right(33).redHighlight('{')                           // ([^)^^{^_]}
-            .leftRestoreSave().left(34).right(31).greenHighlight('[')                         // (*[*^)^^{^_]}
-            .leftAndRestore().right(1).saveCursor().left(35).right(31).undoHighlight('[')     // ([^)^^{^]_}
-            .leftRestoreSave().left(35).right(32).undoHighlight(')')                          // ([)^{^]_}
-            .leftRestoreSave().left(35).right(33).undoHighlight('{')                          // ([){]_}
-            .leftRestoreSave().left(35).right(33).undoHighlight('{')                          // ([){]_}
-            .leftRestoreSave().left(35).right(35).undoHighlight('}')                          // ([){]_}
-            .leftRestoreSave().left(35).right(34).redHighlight(']')                           // ([){^]^_}
-            .leftRestoreSave().left(35).right(33).greenHighlight('{')                         // ([)*{*^]^_}
-            .leftAndRestore().right(1).saveCursor().left(36).right(33).undoHighlight('{')     // ([){^]^}_
-            .leftRestoreSave().left(36).right(34).undoHighlight(']')                          // ([){]}_
+      AnsiSequence expectedSequence = new AnsiSequence.Builder(diff)                                  // ([){]}_
+            .leftAbsolute(1).saveCursor().left(35).right(33).undoHighlight('{')                       // ([){]_}
+            .leftRestoreSave().left(35).right(35).undoHighlight('}')                                  // ([){]_}
+            .leftRestoreSave().left(35).right(34).redHighlight(']')                                   // ([){^]^_}
+            .leftRestoreSave().left(35).right(33).greenHighlight('{')                                 // ([)*{*^]^_}
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(34).right(33).undoHighlight('{')      // ([){_^]^}
+            .leftRestoreSave().left(34).right(34).undoHighlight(']')                                  // ([){_]}
+            .leftRestoreSave().left(34).right(31).undoHighlight('[')                                  // ([){_]}
+            .leftRestoreSave().left(34).right(34).undoHighlight(']')                                  // ([){_]}
+            .leftRestoreSave().left(34).right(32).redHighlight(')')                                   // ([^)^{_]}
+            .leftRestoreSave().left(34).right(33).redHighlight('{')                                   // ([^)^^{^_]}
+            .leftRestoreSave().left(34).right(31).greenHighlight('[')                                 // (*[*^)^^{^_]}
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(33).right(31).undoHighlight('[')      // ([^)^_^{^]}
+            .leftRestoreSave().left(33).right(32).undoHighlight(')')                                  // ([)^_{^]}
+            .leftRestoreSave().left(33).right(33).undoHighlight('{')                                  // ([)_{]}
+            .leftRestoreSave().left(33).right(33).undoHighlight('{')                                  // ([)_{]}
+            .leftRestoreSave().left(33).right(35).undoHighlight('}')                                  // ([)_{]}
+            .leftRestoreSave().left(33).right(34).redHighlight(']')                                   // ([)_{^]^}
+            .leftRestoreSave().left(33).right(35).greenHighlight('}')                                 // ([)_{^]^*}*
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(32).right(35).undoHighlight('}')      // ([_){^]^}
+            .leftRestoreSave().left(32).right(34).undoHighlight(']')                                  // ([_){]}
+            .leftRestoreSave().left(32).right(30).undoHighlight('(')                                  // ([_){]}
+            .leftRestoreSave().left(32).right(32).undoHighlight(')')                                  // ([_){]}
+            .leftRestoreSave().left(32).right(31).redHighlight('[')                                   // (^[^_){]}
+            .leftRestoreSave().left(32).right(30).greenHighlight('(')                                 // *(*^[^_){]}
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(31).right(30).undoHighlight('(')      // (_^[^){]}
+            .leftRestoreSave().left(31).right(31).undoHighlight('[')                                  // (_[){]}
+            .leftRestoreSave().left(31).right(31).undoHighlight('[')                                  // (_[){]}
+            .leftRestoreSave().left(31).right(34).undoHighlight(']')                                  // (_[){]}
+            .leftRestoreSave().left(31).right(32).redHighlight(')')                                   // (_[^)^{]}
+            .leftRestoreSave().left(31).right(33).redHighlight('{')                                   // (_[^)^^{^]}
+            .leftRestoreSave().left(31).right(34).greenHighlight(']')                                 // (_[^)^^{^*]*}
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(30).right(34).undoHighlight(']')      // _([^)^^{^]}
+            .leftRestoreSave().left(30).right(32).undoHighlight(')')                                  // _([)^{^]}
+            .leftRestoreSave().left(30).right(33).undoHighlight('{')                                  // _([){]}
+            .leftRestoreSave().left(30).right(30).undoHighlight('(')                                  // _([){]}
+            .leftRestoreSave().left(30).right(32).undoHighlight(')')                                  // _([){]}
+            .leftRestoreSave().left(30).right(31).redHighlight('[')                                   // _(^[^){]}
+            .leftRestoreSave().left(30).right(32).greenHighlight(')')                                 // _(^[^*)*{]}
+            .leftAndRestore().rightAbsolute(1).saveCursor().left(31).right(32).undoHighlight(')')     // (_^[^){]}
+            .leftRestoreSave().left(31).right(31).undoHighlight('[')                                  // (_[){]}
+            .leftRestoreSave().left(31).right(31).undoHighlight('[')                                  // (_[){]}
+            .leftRestoreSave().left(31).right(34).undoHighlight(']')                                  // (_[){]}
+            .leftRestoreSave().left(31).right(32).redHighlight(')')                                   // (_[^)^{]}
+            .leftRestoreSave().left(31).right(33).redHighlight('{')                                   // (_[^)^^{^]}
+            .leftRestoreSave().left(31).right(34).greenHighlight(']')                                 // (_[^)^^{^*]*}
+            .leftAndRestore().rightAbsolute(1).saveCursor().left(32).right(34).undoHighlight(']')     // ([_^)^^{^]}
+            .leftRestoreSave().left(32).right(32).undoHighlight(')')                                  // ([_)^{^]}
+            .leftRestoreSave().left(32).right(33).undoHighlight('{')                                  // ([_){]}
+            .leftRestoreSave().left(32).right(30).undoHighlight('(')                                  // ([_){]}
+            .leftRestoreSave().left(32).right(32).undoHighlight(')')                                  // ([_){]}
+            .leftRestoreSave().left(32).right(31).redHighlight('[')                                   // (^[^_){]}
+            .leftRestoreSave().left(32).right(30).greenHighlight('(')                                 // *(*^[^_){]}
+            .leftAndRestore().rightAbsolute(1).saveCursor().left(33).right(30).undoHighlight('(')     // (^[^)_{]}
+            .leftRestoreSave().left(33).right(31).undoHighlight('[')                                  // ([)_{]}
+            .leftRestoreSave().left(33).right(33).undoHighlight('{')                                  // ([)_{]}
+            .leftRestoreSave().left(33).right(35).undoHighlight('}')                                  // ([)_{]}
+            .leftRestoreSave().left(33).right(34).redHighlight(']')                                   // ([)_{^]^}
+            .leftRestoreSave().left(33).right(35).greenHighlight('}')                                 // ([)_{^]^*}*
+            .leftAndRestore().rightAbsolute(1).saveCursor().left(34).right(35).undoHighlight('}')     // ([){_^]^}
+            .leftRestoreSave().left(34).right(34).undoHighlight(']')                                  // ([){_]}
+            .leftRestoreSave().left(34).right(31).undoHighlight('[')                                  // ([){_]}
+            .leftRestoreSave().left(34).right(34).undoHighlight(']')                                  // ([){_]}
+            .leftRestoreSave().left(34).right(32).redHighlight(')')                                   // ([^)^{_]}
+            .leftRestoreSave().left(34).right(33).redHighlight('{')                                   // ([^)^^{^_]}
+            .leftRestoreSave().left(34).right(31).greenHighlight('[')                                 // (*[*^)^^{^_]}
+            .leftAndRestore().rightAbsolute(1).saveCursor().left(35).right(31).undoHighlight('[')     // ([^)^^{^]_}
+            .leftRestoreSave().left(35).right(32).undoHighlight(')')                                  // ([)^{^]_}
+            .leftRestoreSave().left(35).right(33).undoHighlight('{')                                  // ([){]_}
+            .leftRestoreSave().left(35).right(33).undoHighlight('{')                                  // ([){]_}
+            .leftRestoreSave().left(35).right(35).undoHighlight('}')                                  // ([){]_}
+            .leftRestoreSave().left(35).right(34).redHighlight(']')                                   // ([){^]^_}
+            .leftRestoreSave().left(35).right(33).greenHighlight('{')                                 // ([)*{*^]^_}
+            .leftAndRestore().rightAbsolute(1).saveCursor().left(36).right(33).undoHighlight('{')     // ([){^]^}_
+            .leftRestoreSave().left(36).right(34).undoHighlight(']')                                  // ([){]}_
             .leftAndRestore()
             .build();
 
@@ -299,8 +308,8 @@ public class BracketsHighlightingTestCase {
             .left(33)
             .build();
 
-      AnsiSequence expectedSequence = new AnsiSequence.Builder()
-            .left(1).saveCursor().left(62).right(38).undoHighlight('(')
+      AnsiSequence expectedSequence = new AnsiSequence.Builder(diff)
+            .leftAbsolute(1).saveCursor().left(62).right(38).undoHighlight('(')
             .leftRestoreSave().left(62).right(59).undoHighlight(')')
             .leftRestoreSave().left(62).right(62).undoHighlight(')')
             .leftRestoreSave().left(62).right(39).undoHighlight('{')
@@ -315,7 +324,7 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(62).right(54).undoHighlight('{')
             .leftRestoreSave().left(62).right(58).undoHighlight('(')
             .leftRestoreSave().left(62).right(38).greenHighlight('(')
-            .leftAndRestore().left(1).saveCursor().left(61).right(38).undoHighlight('(')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(61).right(38).undoHighlight('(')
             .leftRestoreSave().left(61).right(39).undoHighlight('{')
             .leftRestoreSave().left(61).right(60).undoHighlight('}')
             .leftRestoreSave().left(61).right(61).undoHighlight('}')
@@ -329,7 +338,7 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(61).right(58).undoHighlight('(')
             .leftRestoreSave().left(61).right(59).undoHighlight(')')
             .leftRestoreSave().left(61).right(39).greenHighlight('{')
-            .leftAndRestore().left(1).saveCursor().left(60).right(39).undoHighlight('{')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(60).right(39).undoHighlight('{')
             .leftRestoreSave().left(60).right(54).undoHighlight('{')
             .leftRestoreSave().left(60).right(60).undoHighlight('}')
             .leftRestoreSave().left(60).right(55).undoHighlight('[')
@@ -337,23 +346,23 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(60).right(58).undoHighlight('(')
             .leftRestoreSave().left(60).right(59).undoHighlight(')')
             .leftRestoreSave().left(60).right(54).greenHighlight('{')
-            .leftAndRestore().left(1).saveCursor().left(59).right(54).undoHighlight('{')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(59).right(54).undoHighlight('{')
             .leftRestoreSave().left(59).right(58).undoHighlight('(')
             .leftRestoreSave().left(59).right(59).undoHighlight(')')
             .leftRestoreSave().left(59).right(58).greenHighlight('(')
-            .leftAndRestore().left(1).saveCursor().left(58).right(58).undoHighlight('(')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(58).right(58).undoHighlight('(')
             .leftRestoreSave().left(58).right(58).undoHighlight('(')
             .leftRestoreSave().left(58).right(59).undoHighlight(')')
             .leftRestoreSave().left(58).right(59).greenHighlight(')')
-            .leftAndRestore().left(1).saveCursor().left(57).right(59).undoHighlight(')')
-            .leftAndRestore().left(1).saveCursor().left(56).right(55).undoHighlight('[')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(57).right(59).undoHighlight(')')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(56).right(55).undoHighlight('[')
             .leftRestoreSave().left(56).right(56).undoHighlight(']')
             .leftRestoreSave().left(56).right(55).greenHighlight('[')
-            .leftAndRestore().left(1).saveCursor().left(55).right(55).undoHighlight('[')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(55).right(55).undoHighlight('[')
             .leftRestoreSave().left(55).right(55).undoHighlight('[')
             .leftRestoreSave().left(55).right(56).undoHighlight(']')
             .leftRestoreSave().left(55).right(56).greenHighlight(']')
-            .leftAndRestore().left(1).saveCursor().left(54).right(56).undoHighlight(']')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(54).right(56).undoHighlight(']')
             .leftRestoreSave().left(54).right(54).undoHighlight('{')
             .leftRestoreSave().left(54).right(60).undoHighlight('}')
             .leftRestoreSave().left(54).right(55).undoHighlight('[')
@@ -361,24 +370,24 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(54).right(58).undoHighlight('(')
             .leftRestoreSave().left(54).right(59).undoHighlight(')')
             .leftRestoreSave().left(54).right(60).greenHighlight('}')
-            .leftAndRestore().left(1).saveCursor().left(53).right(60).undoHighlight('}')
-            .leftAndRestore().left(1).left(1).left(1).left(1).saveCursor().left(49).right(48).undoHighlight('[')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(53).right(60).undoHighlight('}')
+            .leftAndRestore().leftAbsolute(1).leftAbsolute(1).leftAbsolute(1).leftAbsolute(1).saveCursor().left(49).right(48).undoHighlight('[')
             .leftRestoreSave().left(49).right(49).undoHighlight(']')
             .leftRestoreSave().left(49).right(48).greenHighlight('[')
-            .leftAndRestore().left(1).saveCursor().left(48).right(48).undoHighlight('[')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(48).right(48).undoHighlight('[')
             .leftRestoreSave().left(48).right(48).undoHighlight('[')
             .leftRestoreSave().left(48).right(49).undoHighlight(']')
             .leftRestoreSave().left(48).right(49).greenHighlight(']')
-            .leftAndRestore().left(1).saveCursor().left(47).right(49).undoHighlight(']')
-            .leftAndRestore().left(1).left(1).left(1).left(1).saveCursor().left(43).right(42).undoHighlight('[')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(47).right(49).undoHighlight(']')
+            .leftAndRestore().leftAbsolute(1).leftAbsolute(1).leftAbsolute(1).leftAbsolute(1).saveCursor().left(43).right(42).undoHighlight('[')
             .leftRestoreSave().left(43).right(43).undoHighlight(']')
             .leftRestoreSave().left(43).right(42).greenHighlight('[')
-            .leftAndRestore().left(1).saveCursor().left(42).right(42).undoHighlight('[')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(42).right(42).undoHighlight('[')
             .leftRestoreSave().left(42).right(42).undoHighlight('[')
             .leftRestoreSave().left(42).right(43).undoHighlight(']')
             .leftRestoreSave().left(42).right(43).greenHighlight(']')
-            .leftAndRestore().left(1).saveCursor().left(41).right(43).undoHighlight(']')
-            .leftAndRestore().left(1).left(1).saveCursor().left(39).right(39).undoHighlight('{')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(41).right(43).undoHighlight(']')
+            .leftAndRestore().leftAbsolute(1).leftAbsolute(1).saveCursor().left(39).right(39).undoHighlight('{')
             .leftRestoreSave().left(39).right(60).undoHighlight('}')
             .leftRestoreSave().left(39).right(61).undoHighlight('}')
             .leftRestoreSave().left(39).right(42).undoHighlight('[')
@@ -391,7 +400,7 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(39).right(58).undoHighlight('(')
             .leftRestoreSave().left(39).right(59).undoHighlight(')')
             .leftRestoreSave().left(39).right(61).greenHighlight('}')
-            .leftAndRestore().left(1).saveCursor().left(38).right(61).undoHighlight('}')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(38).right(61).undoHighlight('}')
             .leftRestoreSave().left(38).right(38).undoHighlight('(')
             .leftRestoreSave().left(38).right(59).undoHighlight(')')
             .leftRestoreSave().left(38).right(62).undoHighlight(')')
@@ -407,9 +416,10 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(38).right(54).undoHighlight('{')
             .leftRestoreSave().left(38).right(58).undoHighlight('(')
             .leftRestoreSave().left(38).right(62).greenHighlight(')')
-            .leftAndRestore().left(1).saveCursor().left(37).right(62).undoHighlight(')')
-            .leftAndRestore().left(1).left(1).left(1).left(1).left(1).left(1).left(1)
-            .right(33)
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(37).right(62).undoHighlight(')')
+            .leftAndRestore().leftAbsolute(1).leftAbsolute(1).leftAbsolute(1).leftAbsolute(1)
+            .leftAbsolute(1).leftAbsolute(1).leftAbsolute(1)
+            .rightAbsolute(33)
             .build();
 
       cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
@@ -432,8 +442,8 @@ public class BracketsHighlightingTestCase {
             .left(188)
             .build();
 
-      AnsiSequence.Builder builder = new AnsiSequence.Builder()
-            .left(1).saveCursor().up(1).left(57).right(30).undoHighlight('[')
+      AnsiSequence.Builder builder = new AnsiSequence.Builder(diff)
+            .leftAbsolute(1).saveCursor().up(1).left(57).right(30).undoHighlight('[')
             .leftRestoreSave().left(57).right(57).undoHighlight(']')
             .leftRestoreSave().up(1).left(57).right(31).undoHighlight('{')
             .leftRestoreSave().left(57).right(56).undoHighlight('}')
@@ -442,7 +452,7 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(57).right(55).undoHighlight(')')
             .leftRestoreSave().left(57).right(54).undoHighlight('(')
             .leftRestoreSave().up(1).left(57).right(30).greenHighlight('[')
-            .leftAndRestore().left(1).saveCursor().up(1).left(56).right(30).undoHighlight('[')
+            .leftAndRestore().leftAbsolute(1).saveCursor().up(1).left(56).right(30).undoHighlight('[')
             .leftRestoreSave().up(1).left(56).right(31).undoHighlight('{')
             .leftRestoreSave().left(56).right(56).undoHighlight('}')
             .leftRestoreSave().up(1).left(56).right(32).undoHighlight('(')
@@ -450,35 +460,35 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().left(56).right(55).undoHighlight(')')
             .leftRestoreSave().left(56).right(54).undoHighlight('(')
             .leftRestoreSave().up(1).left(56).right(31).greenHighlight('{')
-            .leftAndRestore().left(1).saveCursor().up(1).left(55).right(31).undoHighlight('{')
+            .leftAndRestore().leftAbsolute(1).saveCursor().up(1).left(55).right(31).undoHighlight('{')
             .leftRestoreSave().left(55).right(54).undoHighlight('(')
             .leftRestoreSave().left(55).right(55).undoHighlight(')')
             .leftRestoreSave().left(55).right(54).greenHighlight('(')
-            .leftAndRestore().left(1).saveCursor().left(54).right(54).undoHighlight('(')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(54).right(54).undoHighlight('(')
             .leftRestoreSave().left(54).right(54).undoHighlight('(')
             .leftRestoreSave().left(54).right(55).undoHighlight(')')
             .leftRestoreSave().left(54).right(55).greenHighlight(')')
-            .leftAndRestore().left(1).saveCursor().left(53).right(55).undoHighlight(')')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(53).right(55).undoHighlight(')')
             .leftAndRestore();
 
-      for (int i = 0; i < 53; i++) {
-         builder = builder.left(1);
+      for (int i = 0; i < 53 + diff; i++) {
+         builder = builder.leftAbsolute(1);
       }
 
-      builder.up(1).right(159);
+      builder.up(1).rightAbsolute(159);
 
-      for (int i = 0; i < 126; i++) {
-         builder = builder.left(1);
+      for (int i = 0; i < 126 - diff; i++) {
+         builder = builder.leftAbsolute(1);
       }
 
       builder.saveCursor().left(33).right(32).undoHighlight('(')
             .leftRestoreSave().left(33).right(33).undoHighlight(')')
             .leftRestoreSave().left(33).right(32).greenHighlight('(')
-            .leftAndRestore().left(1).saveCursor().left(32).right(32).undoHighlight('(')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(32).right(32).undoHighlight('(')
             .leftRestoreSave().left(32).right(32).undoHighlight('(')
             .leftRestoreSave().left(32).right(33).undoHighlight(')')
             .leftRestoreSave().left(32).right(33).greenHighlight(')')
-            .leftAndRestore().left(1).saveCursor().left(31).right(33).undoHighlight(')')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(31).right(33).undoHighlight(')')
             .leftRestoreSave().left(31).right(31).undoHighlight('{')
             .leftRestoreSave().down(1).left(31).right(56).undoHighlight('}')
             .leftRestoreSave().left(31).right(32).undoHighlight('(')
@@ -486,7 +496,7 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().down(1).left(31).right(55).undoHighlight(')')
             .leftRestoreSave().down(1).left(31).right(54).undoHighlight('(')
             .leftRestoreSave().down(1).left(31).right(56).greenHighlight('}')
-            .leftAndRestore().left(1).saveCursor().down(1).left(30).right(56).undoHighlight('}')
+            .leftAndRestore().leftAbsolute(1).saveCursor().down(1).left(30).right(56).undoHighlight('}')
             .leftRestoreSave().left(30).right(30).undoHighlight('[')
             .leftRestoreSave().down(1).left(30).right(57).undoHighlight(']')
             .leftRestoreSave().left(30).right(31).undoHighlight('{')
@@ -496,7 +506,7 @@ public class BracketsHighlightingTestCase {
             .leftRestoreSave().down(1).left(30).right(55).undoHighlight(')')
             .leftRestoreSave().down(1).left(30).right(54).undoHighlight('(')
             .leftRestoreSave().down(1).left(30).right(57).greenHighlight(']')
-            .leftAndRestore().down(1).right(28).saveCursor().left(58).right(57).undoHighlight(']')
+            .leftAndRestore().down(1).rightAbsolute(28).saveCursor().left(58).right(57).undoHighlight(']')
             .leftAndRestore();
 
       AnsiSequence expectedSequence = builder.build();
@@ -528,8 +538,8 @@ public class BracketsHighlightingTestCase {
             .left(2)
             .build();
 
-      AnsiSequence expectedSequence = new AnsiSequence.Builder()
-            .left(1).left(1).right(2)
+      AnsiSequence expectedSequence = new AnsiSequence.Builder(diff)
+            .leftAbsolute(1).leftAbsolute(1).rightAbsolute(2)
             .build();
 
       cli.pushLineAndWaitForResults(command + cursorMovement, expectedSequence.toString());
@@ -559,19 +569,19 @@ public class BracketsHighlightingTestCase {
             .left(3)
             .build();
 
-      AnsiSequence expectedSequence = new AnsiSequence.Builder()
-            .left(1).saveCursor().left(32).right(30).undoHighlight('(')
+      AnsiSequence expectedSequence = new AnsiSequence.Builder(diff)
+            .leftAbsolute(1).saveCursor().left(32).right(30).undoHighlight('(')
             .leftRestoreSave().left(32).right(32).undoHighlight(')')
             .leftRestoreSave().left(32).right(31).whiteHighlight('[')
             .leftRestoreSave().left(32).right(30).whiteHighlight('(')
-            .leftAndRestore().left(1).saveCursor().left(31).right(30).undoHighlight('(')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(31).right(30).undoHighlight('(')
             .leftRestoreSave().left(31).right(31).undoHighlight('[')
-            .leftAndRestore().left(1).saveCursor().left(30).right(30).undoHighlight('(')
+            .leftAndRestore().leftAbsolute(1).saveCursor().left(30).right(30).undoHighlight('(')
             .leftRestoreSave().left(30).right(30).undoHighlight('(')
             .leftRestoreSave().left(30).right(32).undoHighlight(')')
             .leftRestoreSave().left(30).right(31).whiteHighlight('[')
             .leftRestoreSave().left(30).right(32).whiteHighlight(')')
-            .leftAndRestore().right(3).saveCursor().left(33).right(32).undoHighlight(')')
+            .leftAndRestore().rightAbsolute(3).saveCursor().left(33).right(32).undoHighlight(')')
             .leftRestoreSave().left(33).right(31).undoHighlight('[')
             .leftAndRestore()
             .build();

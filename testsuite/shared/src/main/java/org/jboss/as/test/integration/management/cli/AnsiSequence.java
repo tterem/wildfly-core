@@ -42,13 +42,16 @@ public class AnsiSequence {
 
       private static final char ESC = (char) 27;
       private StringBuilder sequence = new StringBuilder();
+      private int diff;
 
-      public Builder() { }
+      public Builder(int diff) {
+         this.diff = diff;
+      }
 
       /**
        * Move cursor n columns to the left
        */
-      public Builder left(int n) {
+      public Builder leftAbsolute(int n) {
          sequence.append(ESC)
                .append("[")
                .append(n)
@@ -59,10 +62,32 @@ public class AnsiSequence {
       /**
        * Move cursor n columns to the right
        */
-      public Builder right(int n) {
+      public Builder rightAbsolute(int n) {
          sequence.append(ESC)
                .append("[")
                .append(n)
+               .append("C");
+         return this;
+      }
+
+      /**
+       * Move cursor n + diff columns to the left
+       */
+      public Builder left(int n) {
+         sequence.append(ESC)
+               .append("[")
+               .append(n + diff)
+               .append("D");
+         return this;
+      }
+
+      /**
+       * Move cursor n + diff columns to the right
+       */
+      public Builder right(int n) {
+         sequence.append(ESC)
+               .append("[")
+               .append(n + diff)
                .append("C");
          return this;
       }
@@ -194,7 +219,7 @@ public class AnsiSequence {
        * Move cursor 1 to the left and restore cursor to previously saved position (move to the left has no effect)
        */
       public Builder leftAndRestore() {
-         return this.left(1).restoreCursor();
+         return this.leftAbsolute(1).restoreCursor();
       }
 
       /**
@@ -203,7 +228,7 @@ public class AnsiSequence {
        * This has no effect at all but it's very common sequence
        */
       public Builder leftRestoreSave() {
-         return this.left(1).restoreCursor().saveCursor();
+         return this.leftAbsolute(1).restoreCursor().saveCursor();
       }
 
       public AnsiSequence build() {
