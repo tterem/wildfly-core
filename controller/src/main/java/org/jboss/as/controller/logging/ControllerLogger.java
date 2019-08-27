@@ -3566,4 +3566,6 @@ public interface ControllerLogger extends BasicLogger {
     @Message(id = 459, value = "Triggering roll back due to missing management services.")
     void missingManagementServices();
 
+    @Message(id = 460, value = "Value for attribute '%s' is invalid.")
+    OperationFailedException invalidAttributeValue(String attributeName);
 }
