@@ -1,0 +1,12 @@
+{
+    "operation-headers" => {"allow-resource-service-restart" => true},
+    "address" => [
+        ("subsystem" => "elytron"),
+        ("key-store" => "test-keystore")
+    ],
+    "operation" => "add",
+    "path" => "/home/tterem/wildfly-core/elytron/target/test-classes/org/wildfly/extension/elytron/test.keystore",
+    "type" => "InvalidType",
+    "credential-reference" => {"clear-text" => "secret"}
+}
+===============
