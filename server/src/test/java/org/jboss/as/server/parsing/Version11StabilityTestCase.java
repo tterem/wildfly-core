@@ -47,13 +47,17 @@ public class Version11StabilityTestCase {
         MessageDigest md = MessageDigest.getInstance("MD5");
         File schema = new File("src/main/resources/schema/wildfly-config_11_0.xsd");
         System.out.println(schema.getCanonicalPath());
+        int bytesRead = 0;
         try (InputStream is = new FileInputStream(schema)) {
             int read;
             byte[] bytes = new byte[256];
             while ((read = is.read(bytes)) > 0) {
                 md.update(bytes, 0, read);
+                bytesRead += read;
             }
         }
+
+        System.out.println("Bytes Read " + bytesRead);
 
         byte[] digest = md.digest();
         String encoded = new String(Base64.getEncoder().encode(digest), StandardCharsets.UTF_8);
