@@ -18,6 +18,7 @@ package org.jboss.as.server.parsing;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -44,7 +45,9 @@ public class Version11StabilityTestCase {
     @Test
     public void testVersion11Modifications() throws Exception {
         MessageDigest md = MessageDigest.getInstance("MD5");
-        try (InputStream is = new FileInputStream("src/main/resources/schema/wildfly-config_11_0.xsd")) {
+        File schema = new File("src/main/resources/schema/wildfly-config_11_0.xsd");
+        System.out.println(schema.getCanonicalPath());
+        try (InputStream is = new FileInputStream(schema)) {
             int read;
             byte[] bytes = new byte[256];
             while ((read = is.read(bytes)) > 0) {
