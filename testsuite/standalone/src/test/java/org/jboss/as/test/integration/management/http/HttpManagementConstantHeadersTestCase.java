@@ -16,18 +16,13 @@
 
 package org.jboss.as.test.integration.management.http;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 
@@ -40,6 +35,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicHeader;
 import org.apache.log4j.Logger;
 import org.jboss.as.controller.PathAddress;
 import org.jboss.as.controller.PathElement;
@@ -54,15 +50,19 @@ import org.wildfly.core.testrunner.ManagementClient;
 import org.wildfly.core.testrunner.UnsuccessfulOperationException;
 import org.wildfly.core.testrunner.WildflyTestRunner;
 
+import static org.junit.Assert.*;
+
 /**
  * Test case to test custom / constant headers are applied to existing contexts.
  *
+ * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  * @author <a href="mailto:darran.lofthouse@jboss.com">Darran Lofthouse</a>
  */
 @RunWith(WildflyTestRunner.class)
 public class HttpManagementConstantHeadersTestCase {
 
     private static final int MGMT_PORT = 9990;
+    private static final String ROOT_CTX = "/";
     private static final String MGMT_CTX = "/management";
     private static final String ERROR_CTX = "/error";
 
@@ -72,6 +72,7 @@ public class HttpManagementConstantHeadersTestCase {
     @Inject
     protected ManagementClient managementClient;
 
+    private URL rootUrl;
     private URL managementUrl;
     private URL errorUrl;
     private HttpClient httpClient;
@@ -79,6 +80,7 @@ public class HttpManagementConstantHeadersTestCase {
     @Before
     public void createClient() throws Exception {
         String address = managementClient.getMgmtAddress();
+        this.rootUrl = new URL("http", address, MGMT_PORT, ROOT_CTX);
         this.managementUrl = new URL("http", address, MGMT_PORT, MGMT_CTX);
         this.errorUrl = new URL("http", address, MGMT_PORT, ERROR_CTX);
 
@@ -101,27 +103,28 @@ public class HttpManagementConstantHeadersTestCase {
         }
     }
 
-    @Before
-    public void activateHeaders() throws Exception {
-        Map<String, Map<String, String>> headersMap = new HashMap<>();
-        headersMap.put("/", Collections.singletonMap("X-All", "All"));
-        headersMap.put("/management", Collections.singletonMap("X-Management", "Management"));
-        headersMap.put("/error", Collections.singletonMap("X-Error", "Error"));
+    private void activateHeaders() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+        headersMap.put("/", Collections.singletonList(Collections.singletonMap("X-All", "All")));
+        headersMap.put("/management", Collections.singletonList(Collections.singletonMap("X-Management", "Management")));
+        headersMap.put("/error", Collections.singletonList(Collections.singletonMap("X-Error", "Error")));
 
         managementClient.executeForResult(createConstantHeadersOperation(headersMap));
 
         ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
     }
 
-    private static ModelNode createConstantHeadersOperation(final Map<String, Map<String, String>> constantHeadersValues) {
+    private static ModelNode createConstantHeadersOperation(final Map<String, List<Map<String, String>>> constantHeadersValues) {
         ModelNode writeAttribute = new ModelNode();
         writeAttribute.get("address").set(INTERFACE_ADDRESS.toModelNode());
         writeAttribute.get("operation").set("write-attribute");
         writeAttribute.get("name").set("constant-headers");
 
         ModelNode constantHeaders = new ModelNode();
-        for (Entry<String, Map<String, String>> entry : constantHeadersValues.entrySet()) {
-            constantHeaders.add(createHeaderMapping(entry.getKey(), entry.getValue()));
+        for (Entry<String, List<Map<String, String>>> entry : constantHeadersValues.entrySet()) {
+            for (Map<String, String> header: entry.getValue()) {
+                constantHeaders.add(createHeaderMapping(entry.getKey(), header));
+            }
         }
 
         writeAttribute.get("value").set(constantHeaders);
@@ -163,6 +166,8 @@ public class HttpManagementConstantHeadersTestCase {
      */
     @Test
     public void testManagement() throws Exception {
+        activateHeaders();
+
         HttpGet get = new HttpGet(managementUrl.toURI().toString());
         HttpResponse response = httpClient.execute(get);
         assertTrue(response.getStatusLine().getStatusCode() == 200);
@@ -182,6 +187,8 @@ public class HttpManagementConstantHeadersTestCase {
      */
     @Test
     public void testError() throws Exception {
+        activateHeaders();
+
         HttpGet get = new HttpGet(errorUrl.toURI().toString());
         HttpResponse response = httpClient.execute(get);
         assertTrue(response.getStatusLine().getStatusCode() == 200);
@@ -196,35 +203,262 @@ public class HttpManagementConstantHeadersTestCase {
         assertNull("Header X-Management Unexpected", header);
     }
 
-    /**
-     * Test that attempting to define a constant-headers attribute with an empty headers list is correctly rejected.
-     */
     @Test
-    public void testEmptyHeadersList() {
-        Map<String, Map<String, String>> headersMap = new HashMap<>();
-        headersMap.put("/", Collections.emptyMap());
+    public void testBasic() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
 
-        try {
-            managementClient.executeForResult(createConstantHeadersOperation(headersMap));
-            fail("Operation was expected to fail.");
-        } catch (UnsuccessfulOperationException e) {
-            assertTrue(e.getMessage().contains("WFLYCTL0115"));
-        }
+        List<Map<String, String>> headers = new LinkedList<>();
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+        headers.add(Collections.singletonMap("TestHeader2", "TestValue2"));
+
+        headersMap.put("/management", headers);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header header = response.getFirstHeader("TestHeader");
+        assertEquals("TestValue", header.getValue());
+
+        header = response.getFirstHeader("TestHeader2");
+        assertEquals("TestValue2", header.getValue());
+    }
+
+    @Test
+    public void testMultipleValues() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+
+        List<Map<String, String>> headers = new LinkedList<>();
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+        headers.add(Collections.singletonMap("TestHeader", "TestValue2"));
+
+        headersMap.put("/management", headers);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header[] headerArray = response.getHeaders("TestHeader");
+
+        List<Header> headerList = Arrays.asList(headerArray);
+
+        assertEquals(2, headerList.size());
+        headerList.contains(new BasicHeader("TestHeader", "TestValue"));
+        headerList.contains(new BasicHeader("TestHeader", "TestValue2"));
+    }
+
+    @Test
+    public void testDuplicateValues() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+
+        List<Map<String, String>> headers = new LinkedList<>();
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+
+        headersMap.put("/management", headers);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header[] headerArray = response.getHeaders("TestHeader");
+
+        List<Header> headerList = Arrays.asList(headerArray);
+
+        assertEquals(2, headerList.size());
+        headerList.contains(new BasicHeader("TestHeader", "TestValue"));
+    }
+
+    @Test
+    public void testRootHeadersAppliesToOtherEndpoints() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+
+        List<Map<String, String>> headers = new LinkedList<>();
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+        headers.add(Collections.singletonMap("TestHeader2", "TestValue2"));
+
+        headersMap.put("/", headers);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header header = response.getFirstHeader("TestHeader");
+        assertEquals("TestValue", header.getValue());
+
+        header = response.getFirstHeader("TestHeader2");
+        assertEquals("TestValue2", header.getValue());
+
+        get = new HttpGet(errorUrl.toURI().toString());
+        response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        header = response.getFirstHeader("TestHeader");
+        assertEquals("TestValue", header.getValue());
+
+        header = response.getFirstHeader("TestHeader2");
+        assertEquals("TestValue2", header.getValue());
+    }
+
+    @Test
+    public void testRootHeadersCombineWithManagementHeadersWithDifferentName() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+
+        List<Map<String, String>> headers = new LinkedList<>();
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+
+        List<Map<String, String>> headers2 = new LinkedList<>();
+        headers2.add(Collections.singletonMap("TestHeader2", "TestValue2"));
+
+        headersMap.put("/", headers);
+        headersMap.put("/management", headers2);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header header = response.getFirstHeader("TestHeader");
+        assertEquals("TestValue", header.getValue());
+
+        header = response.getFirstHeader("TestHeader2");
+        assertEquals("TestValue2", header.getValue());
+
+        get = new HttpGet(errorUrl.toURI().toString());
+        response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        header = response.getFirstHeader("TestHeader");
+        assertEquals("TestValue", header.getValue());
+
+        header = response.getFirstHeader("TestHeader2");
+        assertNull(header);
+    }
+
+    @Test
+    public void testRootHeadersCombineWithManagementHeadersWithSameName() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+
+        List<Map<String, String>> headers = new LinkedList<>();
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+
+        List<Map<String, String>> headers2 = new LinkedList<>();
+        headers2.add(Collections.singletonMap("TestHeader", "TestValue2"));
+
+        headersMap.put("/", headers);
+        headersMap.put("/management", headers2);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header[] headerArray = response.getHeaders("TestHeader");
+
+        List<Header> headerList = Arrays.asList(headerArray);
+
+        assertEquals(2, headerList.size());
+        headerList.contains(new BasicHeader("TestHeader", "TestValue"));
+        headerList.contains(new BasicHeader("TestHeader", "TestValue2"));
+
+        get = new HttpGet(errorUrl.toURI().toString());
+        response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        headerArray = response.getHeaders("TestHeader");
+
+        headerList = Arrays.asList(headerArray);
+
+        assertEquals(1, headerList.size());
+        headerList.contains(new BasicHeader("TestHeader", "TestValue"));
+    }
+
+    @Test
+    public void testRootDuplicateHeadersCombineWithManagementHeaders() throws Exception {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+
+        List<Map<String, String>> headers = new LinkedList<>();
+        headers.add(Collections.singletonMap("TestHeader", "TestValue"));
+
+        List<Map<String, String>> headers2 = new LinkedList<>();
+        headers2.add(Collections.singletonMap("TestHeader", "TestValue"));
+
+        headersMap.put("/", headers);
+        headersMap.put("/management", headers2);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header[] headerArray = response.getHeaders("TestHeader");
+
+        List<Header> headerList = Arrays.asList(headerArray);
+
+        assertEquals(2, headerList.size());
+        assertEquals("TestHeader", headerList.get(0).getName());
+        assertEquals("TestValue", headerList.get(0).getValue());
+        assertEquals("TestHeader", headerList.get(1).getName());
+        assertEquals("TestValue", headerList.get(1).getValue());
+
+        get = new HttpGet(errorUrl.toURI().toString());
+        response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        headerArray = response.getHeaders("TestHeader");
+
+        headerList = Arrays.asList(headerArray);
+
+        assertEquals(1, headerList.size());
+        assertEquals("TestHeader", headerList.get(0).getName());
+        assertEquals("TestValue", headerList.get(0).getValue());
     }
 
     /**
-     * Test attempts to use invalid header names correctly fail.
+     * Test that attempt to use colon in header names correctly fail.
      */
     @Test
-    public void testInvalidHeaderNames() {
+    public void testColonInHeaderName() {
         testInvalidHeaderName("X:Header");
+    }
+
+    /**
+     * Test that attempt to use space in header names correctly fail.
+     */
+    @Test
+    public void testSpaceInHeaderName() {
         testInvalidHeaderName("X Header");
+    }
+
+    /**
+     * Test that attempt to use new line in header names correctly fail.
+     */
+    @Test
+    public void testNewLineInHeaderName() {
         testInvalidHeaderName("X\nHeader");
     }
 
-    public void testInvalidHeaderName(String headerName) {
-        Map<String, Map<String, String>> headersMap = new HashMap<>();
-        headersMap.put("/", Collections.singletonMap(headerName, "TestValue"));
+    private void testInvalidHeaderName(String headerName) {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+        headersMap.put("/", Collections.singletonList(Collections.singletonMap(headerName, "TestValue")));
 
         try {
             managementClient.executeForResult(createConstantHeadersOperation(headersMap));
@@ -234,4 +468,54 @@ public class HttpManagementConstantHeadersTestCase {
         }
     }
 
+    /**
+     * Test that attempting to define a constant-headers attribute with an empty headers list is correctly rejected.
+     */
+    @Test
+    public void testEmptyHeadersList() {
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+        headersMap.put("/", Collections.singletonList(Collections.emptyMap()));
+
+        try {
+            managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+            fail("Operation was expected to fail.");
+        } catch (UnsuccessfulOperationException e) {
+            assertTrue(e.getMessage().contains("WFLYCTL0115"));
+        }
+    }
+
+    @Test
+    public void testHeadersNotOverridden() throws Exception {
+        HttpGet get = new HttpGet(managementUrl.toURI().toString());
+        HttpResponse response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        Header[] headerArray = response.getAllHeaders();
+
+        List<Header> headerList = Arrays.stream(headerArray)
+              .filter(header -> !header.getName().equals("Connection") && !header.getName().equals("Date")
+                    && !header.getName().equals("Transfer-Encoding"))
+              .collect(Collectors.toList());
+
+        Map<String, List<Map<String, String>>> headersMap = new HashMap<>();
+        List<Map<String, String>> headers = new LinkedList<>();
+
+        for (Header header : headerList) {
+            headers.add(Collections.singletonMap(header.getName(), "TestValue"));
+        }
+
+        headersMap.put("/management", headers);
+
+        managementClient.executeForResult(createConstantHeadersOperation(headersMap));
+        ServerReload.executeReloadAndWaitForCompletion(managementClient.getControllerClient());
+
+        get = new HttpGet(managementUrl.toURI().toString());
+        response = httpClient.execute(get);
+        assertTrue(response.getStatusLine().getStatusCode() == 200);
+
+        for (Header header : headerList) {
+            assertNotEquals("TestValue", response.getFirstHeader(header.getName()).getValue());
+            assertEquals(header.getValue(), response.getFirstHeader(header.getName()).getValue()); // won't this break?
+        }
+    }
 }
